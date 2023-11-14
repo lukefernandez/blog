@@ -1,0 +1,24 @@
+---
+title: "10 Reasons You Should Use a Cloud Dev Box"
+datePublished: "2020-06-26"
+summary: "The top 10 reasons you should be using a cloud-based development box."
+---
+
+Using a cloud development box is **awesome**!
+
+I've done pure local development, development on local VMs, development on local Docker containers, development on Docker containers on local VMs, and just about every other combination you can think of. To try and optimize my experience, I've used many tools like `vagrant` and `docker-compose` as well. But none of what I've done in the past holds a candle to what I do now: develop in the cloud!
+
+Using a development box in the cloud has many benefits. Here are the first 10 that I could come up with:
+
+- You can develop from anywhere! When I go from my laptop to my desktop, the only thing that changes about my setup is the hardware. I can work on a feature, push to source control, hop on my other machine, and pick up right where I left off. Hint: Visual Studio Code's Remote SSH functionality makes this super seamless.
+- It encourages you to check in your code. When I develop on a cloud dev box, I treat it as ephemeral. I **expect** the box to go down at some point, so I push my code more often, which usually means partitioning my work better.
+- It's a great way to keep up with your cloud skills. If things go down, you have to fix them. Better yet, if you don't know how to fix them, you have to figure out how to fix them. The more you develop, the more steeped you are in the cloud.
+- Docker for Mac has [known memory issues](https://docs.google.com/document/d/17ZiQC1Tp9iH320K-uqVLyiJmk4DHJ3c4zgQetJiKYQM/edit?usp=sharing) that may cause your machine to hem and haw like mine. Working on a cloud dev box, I don't have to worry about my hardware heating up. And I can still use Docker whenever I want.
+- To piggyback off of the last benefit: cloud means practically infinite power and scalability. If I need more power, I just ask for it! And, when I don't need that power, I don't have to pay for it.
+- It doesn't have to cost money! You can leverage an AWS or Google Cloud free plan to get all that you need.
+- If it does cost money, you can keep it super cheap by using Spot or Preemptible Instances.
+- You can keep your host machine(s) free and clear of anything you use for development (the only dev app on my machines is Visual Studio Code). This frees up space for all of the other programs and files you interact with.
+- Speaking of free and clear, to clean up your cloud dev machine, just delete the box and create a new one with the same configuration. Better yet, use an autoscaling group to handle the recreation for you!
+- Even cooler, you're not married to a certain OS or configuration. If you want something new, just blow away your old setup and start fresh!
+
+If you haven't used a cloud dev box, give it a try! I think you'll love it.

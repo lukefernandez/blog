@@ -1,0 +1,184 @@
+---
+title: "Managing Your AWS Organization in 2023"
+datePublished: "2023-10-16"
+dateModified: "2023-11-05"
+summary: "How to manage your AWS organization and its accounts at scale."
+---
+
+## The Problem
+
+Maybe you've made an acquisition. Maybe you're onboarding a new product or team. Or maybe you're simply making changes to your business structure.
+
+Whatever your situation is, as your business grows, your AWS footprint will grow, too.
+
+And usually, that means the number of accounts in your AWS organization will increase.
+
+**So, what do you do when that happens? How do you manage AWS accounts effectively at scale?**
+
+If you find yourself facing these questions, look no further.
+
+What follows is a summary of my investigation into the best AWS organization management tools — as of October 2023 — and my recommendation for which to adopt if you are looking for a solution today.
+
+If you just want my recommendation, feel free to [skip to the end](#my-recommendation).
+
+## Getting Clear On Our Objective
+
+Before we go on, let's get clear about what "managing accounts effectively at scale" means.
+
+For me, this means making sure:
+
+1. all accounts I create are secure, compliant, and consistent
+2. those accounts **_stay_** secure, compliant, and consistent
+3. creating and managing those accounts is centralized and seamless.
+
+To follow the nomenclature that AWS has adopted, we:
+
+1. want a well-architected "landing zone" into which we can provision accounts
+2. want to provision and manage accounts in that landing zone in a well-architected way.
+
+Let's figure out the best way to do that.
+
+## My Approach
+
+Whenever I build something on AWS, I like to look at their recommendation first and then evaluate if and how I can get the same value or better from alternatives.
+
+So, let's do that.
+
+AWS' prescriptive guidance for creating a well-architected landing zone can be found [here](https://docs.aws.amazon.com/prescriptive-guidance/latest/migration-aws-environment/welcome.html). There they recommend **AWS Control Tower**.
+
+They then expand upon that recommendation [here](https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/solution-overview.html), suggesting that users "deploy AWS Control Tower as the foundational landing zone and enhance their landing zone capabilities with **Landing Zone Accelerator**."
+
+Let's take a closer look at both and see what they offer.
+
+FYI: It's worth mentioning that Control Tower information before Reinvent 2022 (end of last year) isn't really worth paying attention to. Control Tower got a lot of upgrades around then. It is now more robust and flexible. It's certainly worth a second look if you have avoided it in the past.
+
+## Investigating Control Tower
+
+At its core, Control Tower is an orchestrator. Most of the value it provides comes from orchestrating different AWS services under the hood to enable and enforce a set of best practices.
+
+We'll call these best practices **controls or guardrails** to match AWS' lingo. Alongside orchestration and the landing zone that orchestration delivers, Control Tower provides a single pane of glass for monitoring and governance.
+
+More granularly, Control Tower offers:
+
+- A landing zone that separates and organizes accounts via AWS Organizations, provides granular account access via AWS IAM Identity Center, and follows account-level logging and security best practices.
+- Automated account creation and enrollment via Account Factory — an abstraction on top of AWS Service Catalog.
+- Pre-defined controls — targeting NIST, PCI, and CIS compliance standards — that can be enabled at the OU level.
+- Drift detection — for when accounts aren't meeting enabled controls — and automated remediation of noncompliant accounts.
+- A dashboard for managing controls and visualizing compliance status across the entire AWS organization.
+
+To me, **the majority of the value offered by Control Tower comes from its set of pre-defined controls** and the enforcement and visualization of those controls. The rest of the Control Tower offering — namely the thin layer around Organizations and IAM Identity Center — isn't much to write home about.
+
+Here's why I think Control Tower's controls are great: **they're already defined for us** and are built around the many lessons that AWS has learned over the years.
+
+Even better, **you don't have to figure out how to enforce them**. AWS will manage that on your behalf.
+
+And they're not just fluff. They're fairly robust.
+
+Control Tower offers three types: preventative, detective, and proactive.
+
+Each control is marked as either mandatory, strongly recommended, or elective and is mapped to one or more of three frameworks: [CIS AWS Benchmark 1.4](https://us-west-2.console.aws.amazon.com/controltower/home/controlcategories/frameworks/cis-aws-benchmark-1-4?region=us-west-2), [NIST 800-53 Rev 5](https://us-west-2.console.aws.amazon.com/controltower/home/controlcategories/frameworks/nist-800-53-rev-5?region=us-west-2), and [PCI DSS version 3.2.1](https://us-west-2.console.aws.amazon.com/controltower/home/controlcategories/frameworks/pci-dss-version-3-2-1?region=us-west-2).
+
+Controls are applied at the OU level and automatically apply to every account in the OU. **The list of controls is ever-growing**, so the value of opting in increases over time.
+
+Let's look at one specific example: [Detect whether storage encryption is enabled for Amazon RDS database instances](https://us-west-2.console.aws.amazon.com/controltower/home/controls/AWS-GR_RDS_STORAGE_ENCRYPTED?region=us-west-2). This may seem like an obvious control when you read the name, but do you currently check for it across all of your AWS accounts? Maybe you have done so manually at some point. But do you have automation for it? Are you running that automation regularly to evaluate compliance?
+
+As of this writing, there are 399 Control Tower controls, so a lot of value to be had here.
+
+But you might be thinking: how many of these controls actually come from Control Tower and how many of them are just gained implicitly by adopting Security Hub across your accounts? Can't we just use Security Hub instead?
+
+I was pleasantly surprised by the answer to this question. As of this writing, there are 261 Security Hub controls. So, there are 138 controls offered by Control Tower that do not come from Security Hub. And that makes sense, because a lot of the controls offered by Control Tower are focused on non-security control objectives like improving availability and optimizing cost.
+
+Something to keep in mind: the opposite is true as well. There are Security Hub controls that are not covered by the Control Tower/Security Hub integration. So you'll need to go to Security Hub to enable and look at the status of those controls.
+
+That said, when enabling a Security Hub control in Control Tower, Control Tower will enable and manage Security Hub for you, and that actually makes enabling Security Hub across your accounts a lot easier than if you did it manually.
+
+In my mind, these offerings make Control Tower attractive, but we also have to take into account the downsides of Control Tower.
+
+First, almost everything you do in Control Tower is done through the console. It is one of the only services on AWS that can't easily be defined as code (though a rudimentary API now exists that may eventually be expanded upon down the road). You can customize your Account Factory as code, but the organization of accounts, control selection, etc. are not configured as code. This means that you can't take advantage of pull requests and the other many benefits of codifying infrastructure.
+
+Following up on that, what naturally follows if you aren't configuring your infrastructure as code? You end up putting a lot of faith in AWS.
+
+You don't own or track the state of our infrastructure over time, so you have to trust AWS to do that for you. If the state drifts, AWS alone holds the source of truth that drift is measured against. If that source of truth is wrong in one way or another, you might think you're compliant when you really are not. That said, I don't think this is a big concern. We already trust AWS with a lot of things, and I don't think that trust is misplaced. Just something to consider.
+
+## Investigating Landing Zone Accelerator
+
+Like Control Tower, the Landing Zone Accelerator is an orchestrator of sorts, but it's not nearly as managed as Control Tower.
+
+Instead of simply enabling Control Tower in the AWS console, you deploy the Landing Zone Accelerator — a bunch of infrastructure in a Cloudformation template — into your account yourself.
+
+Part of this infrastructure, called the Core pipeline, is responsible for taking configuration files that you provide and, based on what is in those configuration files, creating and updating resources across your AWS accounts. It's a little more complicated than that in reality, but that's the high-level idea.
+
+Some of the things that can be configured via the Landing Zone Accelerator are:
+
+- What accounts should be created
+- Backup policies
+- Budget reports
+- Centrally-managed networking components
+- Service control policies
+- Tag policies
+- and more.
+
+You might notice that this list highlights another key shortcoming of Control Tower. Control Tower extends Organizations, but you still have to create and manage Organization policies such as service control policies and tag policies yourself. And you'll want those things no matter what.
+
+Landing Zone Accelerator is one way of configuring them, but is it the best way of doing so? And is it worth the overhead?
+
+Configuring each Landing Zone Accelerator item is fairly easy to do by modifying configuration files in CodeCommit (gross), but the solution as an abstraction is fairly complex, and it doesn't make me feel like I'm getting more value than if I were to configure things on my own via CDK or Terraform.
+
+And you'll also want to factor in cost. Because it's easier than paraphrasing, I'll just put this here: "using the Landing Zone Accelerator on AWS [best practices configuration](https://github.com/awslabs/landing-zone-accelerator-on-aws/tree/main/reference/sample-configurations/aws-best-practices) with AWS Control Tower in the US East (N. Virginia) Region within a non-critical sandbox environment with no activity or workloads is approximately **$430.22 (USD)** each month."
+
+That's certainly not nothing. Maybe at scale, the cost would feel negligible, and that cost could be minimized by turning off some best practice configurations, but what's the upside?
+
+Almost everything offered by the Landing Zone Accelerator can be configured via CDK or Terraform or is configured organization-wide and can be configured once via the console without a lot of downside.
+
+The value added versus the complexity added isn't convincing to me.
+
+## Considering the Alternatives
+
+When looking at account creation, management, and governance, the two primary alternatives in the market are Terraform and Org Formation. How do they stack up against Control Tower and the Landing Zone Accelerator? Let's find out.
+
+### Ruling Out Org Formation
+
+Without even looking at the scope it provides — which overlaps a bit with both Control Tower and the Landing Zone Accelerator — we can probably rule out Org Formation as an alternative. Why? It's a great offering, but it has a few critical shortcomings.
+
+First things first, there isn't anything (to the best of my knowledge) that you can do with Org Formation that you can't do with Terraform and Terragrunt — or [now even with CloudFormation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/AWS_Organizations.html) (but not yet CDK). Sure, some things might be a little less verbose when using Org Formation, but that's because it was purpose-built for Organizations, not because it's more fundamentally sound.
+
+Secondly, to take advantage of Org Formation, you essentially have to learn a new language. And what do you get in return? Other than configuration as code, not much more than you can get for free with Control Tower in under an hour.
+
+Similar to the value vs. complexity consideration of the Landing Zone Accelerator, this seems like a relatively low return on investment.
+
+Lastly, Org Formation is primarily maintained by one person. Yes, that person uses Org Formation in their day to day work and has an incentive to maintain it, but issues like out-of-date documentation quickly became apparent as I was reviewing the tool. I would rather have the peace of mind brought by using something with a large backing when I'm talking about **managing my entire AWS organization**.
+
+So, I think we can reasonably rule out Org Formation as part of our solution.
+
+Okay, what about Terraform?
+
+### Ruling Out Terraform
+
+Unlike Org Formation, Terraform is a tool for generalists. It is industry-proven, easy to learn, and highly flexible. With Terraform, you can do almost everything that Control Tower can do (aside from the dashboard piece) and you get the benefit of doing it as code.
+
+But there are four hangups with Terraform:
+
+- no controls out of the box
+- you'll need solid Terraform knowledge in your team to reach relative feature-parity with Control Tower
+- you'll need to develop and maintain a reliable deployment pipeline to apply your Terraform code
+- and what was just mentioned: the lack of a central dashboard.
+
+No controls out of the box is a big one. Because Control Tower and Security Hub exist, you don't necessarily have to define your own controls if you use Terraform. You could always just adopt those controls and figure out how to enforce them on your own. But that would be a massive undertaking; one that I don't think is worth the time or the effort.
+
+And then, even if you use Terraform for controls, organization definition, etc., you would still need to roll your own dashboard solution — one of the biggest benefits of Control Tower — to visualize compliance across the organization in one place.
+
+Do you really want to do that? I don't. I think we can reasonably rule out Terraform as part of our solution.
+
+## My Recommendation
+
+In summary, ask yourself these two questions:
+
+1. Do you have a team with the resources to create and manage the complexity of a custom solution that you roll and manage yourself?
+2. Even if you have the resources, is it worth it to spend a large portion of your time building and maintaining that solution?
+
+If either of your answers to the above is "No," I recommend you:
+
+- Adopt Control Tower to take advantage of the controls/guardrails that are offered out of the box.
+- Follow many of the best practices offered by the Landing Zone Accelerator, but do so without deploying the Accelerator. For example, start leveraging organization-level policies like SCPs, tagging policies, backup policies, and key management policies. These are features of Organizations that Control Tower doesn't automatically employ.
+
+If you really want to build something yourself and don't mind maintaining it over time, go for it. But I've done it and don't recommend anyone else do the same if they don't have to. For most organizations, Control Tower is plenty good enough.
